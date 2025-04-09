@@ -47,7 +47,7 @@ def scrape_websites():
         category_products = scrape_category(base_url, site_info["categories"], site_info['scraper'])
         products.extend(category_products)
             
-    with open("products.json", "w", encoding="utf-8") as f:
+    with open("scraper/json/products.json", "w", encoding="utf-8") as f:
         json.dump(products, f, ensure_ascii=False, indent=4)
          
     return products
@@ -123,7 +123,7 @@ async def scrape_websites_async():
     all_products = [product for sublist in results for product in sublist]
     
     # Save results to file
-    with open("products_async.json", "w", encoding="utf-8") as f:
+    with open("scraper/json/products_async.json", "w", encoding="utf-8") as f:
         json.dump(all_products, f, ensure_ascii=False, indent=4)
         
     return all_products
