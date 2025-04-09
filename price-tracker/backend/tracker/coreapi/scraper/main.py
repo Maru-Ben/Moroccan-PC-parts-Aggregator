@@ -14,13 +14,13 @@ HEADERS = {
 }
 
 URLS = {
-    # "https://www.ultrapc.ma": {
-    #     "categories": [
-    #         {"url": "/20-composants", "type": "Components"},
-    #         {"url": "/58-peripheriques", "type": "Peripherals"}
-    #     ],
-    #     "scraper": "ultrapc"
-    # },
+    "https://www.ultrapc.ma": {
+        "categories": [
+            {"url": "/20-composants", "type": "Components"},
+            {"url": "/58-peripheriques", "type": "Peripherals"}
+        ],
+        "scraper": "ultrapc"
+    },
     "https://nextlevelpc.ma": {
         "categories": [
             {"url": "/143-composants", "type": "Components"},
@@ -29,13 +29,13 @@ URLS = {
         ],
         "scraper": "nextlevelpc"
     },
-    # "https://techspace.ma": {
-    #     "categories": [
-    #         {"url": "/collections/composants", "type": "Components"},
-    #         {"url": "/collections/peripheriques", "type": "Peripherals"}
-    #     ],
-    #     "scraper": "techspace"
-    # }
+    "https://techspace.ma": {
+        "categories": [
+            {"url": "/collections/composants", "type": "Components"},
+            {"url": "/collections/peripheriques", "type": "Peripherals"}
+        ],
+        "scraper": "techspace"
+    }
 }
 
 
