@@ -3,6 +3,7 @@ import json
 import random
 import time
 from typing import Dict
+import aiohttp
 from bs4 import BeautifulSoup
 
 from .logger import logger
@@ -61,55 +62,59 @@ def scrape_category(url, categories, scraper):
         scraper (string): name of the scraper -- the website
     """
     all_category_products = []
-    
     for category in categories:
-        page = 1 
-        category_products = []
-        has_products = True
-        
-        # visiting each page of the category to scrape it
-        while has_products:
-            page_url = f"{url + category['url']}?page={page}"
-            logger.info(f"Scraping: {page_url}")
+        try:
+            page = 1 
+            category_products = []
+            has_products = True
             
-            # Respect rate limits
-            respect_rate_limits()
-            
-            # Get page content based on scraper type
-            html_content = None
-            if scraper == "ultrapc":
-                html_content = get_page_with_retry(page_url, HEADERS, scraper_type="requests")
-            else:
-                html_content = get_page_with_retry(page_url, HEADERS, scraper_type="cloudscraper")
-            
-            if not html_content:
-                logger.warning(f"Failed to get content for {page_url}, moving to next category")
-                break
-            
-            soup = BeautifulSoup(html_content, "html.parser")
-            page_products = []
+            # visiting each page of the category to scrape it
+            while has_products:
+                page_url = f"{url + category['url']}?page={page}"
+                logger.info(f"Scraping: {page_url}")
+                
+                # Respect rate limits
+                respect_rate_limits()
+                
+                # Get page content based on scraper type
+                html_content = None
+                if scraper == "ultrapc":
+                    html_content = get_page_with_retry(page_url, HEADERS, scraper_type="requests")
+                else:
+                    html_content = get_page_with_retry(page_url, HEADERS, scraper_type="cloudscraper")
+                
+                if not html_content:
+                    raise Exception(f"Failed to fetch page: {page_url}")
 
-            # Extract products based on site type
-            if scraper == "ultrapc":
-                page_products = extract_ultrapc_products(soup, category["type"])
-            elif scraper == "nextlevelpc":
-                page_products = extract_nextlevelpc_products(soup, category["type"])
-            elif scraper == "techspace":
-                page_products = extract_techspace_products(url, soup, category["type"])
                 
-                
-            if not page_products:
-                has_products = False
-                logger.info(f"No more products found at page {page} for {url + category['url']}")
-            else:
-                category_products.extend(page_products)
-                logger.info(f"Found {len(page_products)} products on page {page}")
-                page += 1
-                
-        all_category_products.extend(category_products)
-        logger.info(f"Completed scraping {url + category['url']} - found {len(category_products)} products")
+                soup = BeautifulSoup(html_content, "html.parser")
+                page_products = []
 
-    return all_category_products   
+                # Extract products based on site type
+                if scraper == "ultrapc":
+                    page_products = extract_ultrapc_products(soup, category["type"])
+                elif scraper == "nextlevelpc":
+                    page_products = extract_nextlevelpc_products(soup, category["type"])
+                elif scraper == "techspace":
+                    page_products = extract_techspace_products(url, soup, category["type"])
+                
+                    
+                if not page_products:
+                    has_products = False
+                    logger.info(f"No more products found at page {page} for {url + category['url']}")
+                else:
+                    category_products.extend(page_products)
+                    logger.info(f"Found {len(page_products)} products on page {page}")
+                    page += 1
+                    
+            all_category_products.extend(category_products)
+            logger.info(f"Completed scraping {url + category['url']} - found {len(category_products)} products")
+            
+        except Exception as e:
+            logger.error(f"Failed to scrape data from {url} category {category['url']}: {e}")  
+            continue
+    return all_category_products
+ 
   
 async def scrape_websites_async():
     """Main async function to scrape all websites."""
@@ -130,42 +135,51 @@ async def scrape_websites_async():
   
 async def scrape_category_async(url: str, category: Dict[str, str], scraper: str):
     """Scrape a category asynchronously"""
-    page = 1
-    category_products = []
-    has_products = True
-    
-    while has_products:
-        page_url = f"{url + category['url']}?page={page}"
-        logger.info(f"Async scraping: {page_url}")
+    try:
+        page = 1
+        category_products = []
+        has_products = True
         
-        # Add delay for rate limiting
-        await asyncio.sleep(random.uniform(1, 3))
-        if scraper == "nextlevelpc":
-            html_content = await fetch_async(page_url, HEADERS, "cloudscraper")
-        else:
-            html_content = await fetch_async(page_url, HEADERS)
-        
-        if not html_content:
-            break
-        
-        soup = BeautifulSoup(html_content, "html.parser")
-        page_products = []
-        
-        if scraper == "ultrapc":
-            page_products = extract_ultrapc_products(soup, category["type"])
-        elif scraper == "nextlevelpc":
-            page_products = extract_nextlevelpc_products(soup, category["type"])
-        elif scraper == "techspace":
-            page_products = extract_techspace_products(url, soup, category["type"])
-        
-        if not page_products:
-            has_products = False
-        else:
-            category_products.extend(page_products)
-            page += 1
+        while has_products:
+            page_url = f"{url + category['url']}?page={page}"
+            logger.info(f"Async scraping: {page_url}")
             
-    return category_products
-
+            # Add delay for rate limiting
+            await asyncio.sleep(random.uniform(1, 3))
+            if scraper == "nextlevelpc":
+                html_content = await fetch_async(page_url, HEADERS, "cloudscraper")
+            else:
+                html_content = await fetch_async(page_url, HEADERS)
+            
+            if not html_content:
+                raise Exception(f"Failed to get content for {page_url} (Async)")
+            
+            soup = BeautifulSoup(html_content, "html.parser")
+            page_products = []
+            
+            if scraper == "ultrapc":
+                page_products = extract_ultrapc_products(soup, category["type"])
+            elif scraper == "nextlevelpc":
+                page_products = extract_nextlevelpc_products(soup, category["type"])
+            elif scraper == "techspace":
+                page_products = extract_techspace_products(url, soup, category["type"])
+            
+            if not page_products:
+                has_products = False
+            else:
+                category_products.extend(page_products)
+                page += 1
+        
+        if category_products == []:
+            raise Exception(f"No products were scrapped from the whole category")
+        return category_products
+    except aiohttp.ClientError as e:
+        logger.error(f"Network error while scraping {url}: {e}")
+        return scrape_category(url, [category], scraper)
+    except Exception as e:
+        logger.warning(f"Async scraping failed for {url + category['url']}, falling back to sync: {str(e)}")
+        # Call sync version instead
+        return scrape_category(url, [category], scraper)
 
 if __name__ == "__main__":
     import argparse

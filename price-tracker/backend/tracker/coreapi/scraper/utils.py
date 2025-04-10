@@ -50,6 +50,11 @@ def get_page_with_retry(url:str, headers: dict, max_retries: int=3, scraper_type
         try:
             if scraper_type == "requests":
                 response = requests.get(url, headers=headers, timeout=10)
+                if response.status_code == 429: # too many requests
+                    wait_time = int(response.headers.get('Retry-After', 60))
+                    logger.warning(f"Rate limited. Waiting {wait_time} seconds")
+                    time.sleep(wait_time)
+                    continue
                 return response.text
             elif scraper_type == "cloudscraper":
                 cloud = cloudscraper.create_scraper()
@@ -67,18 +72,37 @@ def get_page_with_retry(url:str, headers: dict, max_retries: int=3, scraper_type
 
 
 async def fetch_async(url, headers, scraper_type="aiohttp"):
-    if scraper_type == "cloudscraper":
-        loop = asyncio.get_event_loop()
-        cloud = cloudscraper.create_scraper()
-        return await loop.run_in_executor(
-            None, lambda: cloud.get(url, headers=headers).text
-        )
-    else:
-        # Regular aiohttp fetch
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, headers=headers) as response:
-                if response.status == 200:
-                    return await response.text()
-                else:
-                    logger.warning(f"Failed to fetch {url} - Status code: {response.status}")
+    try:
+        if scraper_type == "cloudscraper":
+            loop = asyncio.get_event_loop()
+            cloud = cloudscraper.create_scraper()
+            return await loop.run_in_executor(
+                None, lambda: cloud.get(url, headers=headers).text
+            )
+        else:
+            # Regular aiohttp fetch
+            async with aiohttp.ClientSession() as session:
+                try:
+                    async with session.get(url, headers=headers) as response:
+                        if response.status == 200:
+                            return await response.text()
+                        elif response.status == 429:
+                            logger.warning(f"Rate limited at {url}")
+                            raise aiohttp.ClientConnectionError(
+                                request_info=response.request_info,
+                                history=response.history,
+                                status=429
+                            )
+                        else:
+                            logger.warning(f"Failed to fetch {url} - Status code: {response.status}")
+                            return None
+                except aiohttp.ClientTimeout:
+                    logger.error(f"Timeout while fetching {url}")
                     return None
+                except aiohttp.ClientConnectionError:
+                    logger.error(f"Connection error while fetching {url}")
+                    return None
+    except Exception as e:
+        logger.error(f"Unexpected error fetching {url}: {str(e)})")
+        return None
+            
