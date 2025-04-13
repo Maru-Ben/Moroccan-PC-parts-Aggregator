@@ -27,20 +27,20 @@ def extract_ultrapc_products(soup: BeautifulSoup, category_type: str):
             price_tag = item.select_one("span.price") # content element of this tag is the price
             availability_tag = item.select_one("div.product-availability") # text 
             
-            if availability_tag.text.strip().lower() != "produit en stock":
+            if "en stock" not in  availability_tag.text.strip().lower():
                 continue
             
             product_url = name_and_url_tag["href"] if name_and_url_tag else None
             product_name = name_and_url_tag.text.lower().strip() if name_and_url_tag else None
             
             product = {
-                "id": generate_product_id(product_name, "ultrapc", product_url),
+                "id": generate_product_id(product_name, product_url),
                 "name": product_name,
                 "url": product_url,
                 "short_description": short_description_tag.text.lower().strip() if short_description_tag else None,
                 "image_url": image_tag["src"] if image_tag else None,
                 "price": float(price_tag["content"].strip()) if price_tag else None,
-                "availability": True if (availability_tag.text.lower().strip() == "produit en stock" and availability_tag) else False,
+                "availability": True,
                 "category": category_type,
                 "website": "ultrapc"
             }        
@@ -74,7 +74,7 @@ def extract_nextlevelpc_products(soup, category_type):
             image_tag = item.select_one("a.product-thumbnail img.tvproduct-defult-img") # src of the image tag
             price_tag = item.select_one("span.price") # text of the tag
             availability_tag = item.select_one("div.custom-product-badge span.badge-name-text") # text 
-            if availability_tag.text.strip().lower() != "en stock":
+            if "en stock" not in availability_tag.text.strip().lower():
                 continue
             
             features = item.select("div.product-features li")
@@ -88,13 +88,13 @@ def extract_nextlevelpc_products(soup, category_type):
             product_url = url_tag["href"]
             
             product = {
-                "id": generate_product_id(product_name, "nextlevelpc", product_url),
+                "id": generate_product_id(product_name, product_url),
                 "name": product_name,
                 "url": product_url,
                 "short_description": normalize_spaces(short_description.lower().strip()) if short_description else None,
                 "image_url": image_tag.get("data-cfsrc") or image_tag.get("src") if image_tag else None,
                 "price": cleaned_price,
-                "availability": True if (availability_tag.text.lower().strip() == "en stock" and availability_tag) else False,
+                "availability": True,
                 "category": category_type,
                 "website": "nextlevelpc"
             }        
@@ -148,13 +148,13 @@ def extract_techspace_products(url, soup, category_type):
             product_url = url + name_and_url_tag["href"]
             
             product = {
-                "id": generate_product_id(product_name, "techspace", product_url),
+                "id": generate_product_id(product_name, product_url),
                 "name": product_name,
                 "url": product_url,
                 "short_description": None,
                 "image_url": image_url,
                 "price": cleaned_price,
-                "availability": True if (availability_tag.text.lower().strip() == "en stock." and availability_tag) else False,
+                "availability": True,
                 "category": category_type,
                 "website": "techspace"
             }        

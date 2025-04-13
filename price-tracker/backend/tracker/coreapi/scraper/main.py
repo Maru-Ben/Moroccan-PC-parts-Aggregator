@@ -5,10 +5,15 @@ import time
 from typing import Dict
 import aiohttp
 from bs4 import BeautifulSoup
+from pathlib import Path
 
 from .logger import logger
 from .scapers import extract_ultrapc_products, extract_nextlevelpc_products, extract_techspace_products
 from .utils import fetch_async, respect_rate_limits, get_page_with_retry
+
+# Mirroring the choices in my Product model
+COMPONENTS = "COMP" 
+PERIPHERALS = "PER" 
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
@@ -17,23 +22,23 @@ HEADERS = {
 URLS = {
     "https://www.ultrapc.ma": {
         "categories": [
-            {"url": "/20-composants", "type": "Components"},
-            {"url": "/58-peripheriques", "type": "Peripherals"}
+            {"url": "/20-composants", "type": COMPONENTS},
+            {"url": "/58-peripheriques", "type": PERIPHERALS}
         ],
         "scraper": "ultrapc"
     },
     "https://nextlevelpc.ma": {
         "categories": [
-            {"url": "/143-composants", "type": "Components"},
-            {"url": "/148-peripherique-pc", "type": "Peripherals"},
-            {"url": "/189-ecran-pc", "type": "Peripherals"}
+            {"url": "/143-composants", "type": COMPONENTS},
+            {"url": "/148-peripherique-pc", "type": PERIPHERALS},
+            {"url": "/189-ecran-pc", "type": PERIPHERALS}
         ],
         "scraper": "nextlevelpc"
     },
     "https://techspace.ma": {
         "categories": [
-            {"url": "/collections/composants", "type": "Components"},
-            {"url": "/collections/peripheriques", "type": "Peripherals"}
+            {"url": "/collections/composants", "type": COMPONENTS},
+            {"url": "/collections/peripheriques", "type": PERIPHERALS}
         ],
         "scraper": "techspace"
     }
@@ -47,12 +52,37 @@ def scrape_websites():
         logger.info(f"Scraping {site_info['scraper']}...")
         category_products = scrape_category(base_url, site_info["categories"], site_info['scraper'])
         products.extend(category_products)
-            
-    with open("scraper/json/products.json", "w", encoding="utf-8") as f:
+        
+    logger.info(f"Scraped {len(products)} total products across {len(URLS)} sites.")
+    
+    json_dir = Path(__file__).parent / "json"
+    json_dir.mkdir(parents=True, exist_ok=True)
+    output_file = json_dir / "products.json"
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(products, f, ensure_ascii=False, indent=4)
          
     return products
 
+async def scrape_websites_async():
+    """Main async function to scrape all websites."""
+    tasks = []
+    for base_url, site_info in URLS.items():
+        for category in site_info["categories"]:
+            task = scrape_category_async(base_url, category, site_info["scraper"])
+            tasks.append(task)
+    
+    results = await asyncio.gather(*tasks)
+    all_products = [product for sublist in results for product in sublist]
+    logger.info(f"Scraped {len(all_products)} total products across {len(URLS)} sites.")
+    # Save results to file
+    json_dir = Path(__file__).parent / "json"
+    json_dir.mkdir(parents=True, exist_ok=True)
+    output_file = json_dir / "async_products.json"
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(all_products, f, ensure_ascii=False, indent=4)
+        
+    return all_products
+  
 def scrape_category(url, categories, scraper):
     """scrape one ultrapc category 
 
@@ -115,24 +145,6 @@ def scrape_category(url, categories, scraper):
             continue
     return all_category_products
  
-  
-async def scrape_websites_async():
-    """Main async function to scrape all websites."""
-    tasks = []
-    for base_url, site_info in URLS.items():
-        for category in site_info["categories"]:
-            task = scrape_category_async(base_url, category, site_info["scraper"])
-            tasks.append(task)
-    
-    results = await asyncio.gather(*tasks)
-    all_products = [product for sublist in results for product in sublist]
-    
-    # Save results to file
-    with open("scraper/json/products_async.json", "w", encoding="utf-8") as f:
-        json.dump(all_products, f, ensure_ascii=False, indent=4)
-        
-    return all_products
-  
 async def scrape_category_async(url: str, category: Dict[str, str], scraper: str):
     """Scrape a category asynchronously"""
     try:
@@ -175,9 +187,11 @@ async def scrape_category_async(url: str, category: Dict[str, str], scraper: str
         return category_products
     except aiohttp.ClientError as e:
         logger.error(f"Network error while scraping {url}: {e}")
+        logger.warning(f"Falling back to sync may cause partial duplication in {category['url']}")
         return scrape_category(url, [category], scraper)
     except Exception as e:
-        logger.warning(f"Async scraping failed for {url + category['url']}, falling back to sync: {str(e)}")
+        logger.error(f"Async scraping failed for {url + category['url']}: {str(e)}")
+        logger.warning(f"Falling back to sync may cause partial duplication in {category['url']}")
         # Call sync version instead
         return scrape_category(url, [category], scraper)
 
