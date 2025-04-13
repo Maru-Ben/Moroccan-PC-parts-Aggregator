@@ -15,6 +15,7 @@ db.sqlite3
 /media/
 staticfiles/
 *.mo
+scraper/logs/
 
 # Scraper output
 json

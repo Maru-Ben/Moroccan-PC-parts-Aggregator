@@ -38,9 +38,9 @@ def extract_price(price):
     return None
 
 
-def generate_product_id(name: str, website: str, url:str) -> str:
+def generate_product_id(name: str, url:str) -> str:
     """Generate a consistent hash ID for a product."""
-    id_string = f"{name}|{website}|{url}"
+    id_string = f"{name}|{url}"
     return hashlib.md5(id_string.encode()).hexdigest()
 
 

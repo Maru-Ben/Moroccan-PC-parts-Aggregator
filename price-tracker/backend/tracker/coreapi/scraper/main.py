@@ -10,6 +10,10 @@ from .logger import logger
 from .scapers import extract_ultrapc_products, extract_nextlevelpc_products, extract_techspace_products
 from .utils import fetch_async, respect_rate_limits, get_page_with_retry
 
+# Mirroring the choices in my Product model
+COMPONENTS = "COMP" 
+PERIPHERALS = "PER" 
+
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 }
@@ -17,23 +21,23 @@ HEADERS = {
 URLS = {
     "https://www.ultrapc.ma": {
         "categories": [
-            {"url": "/20-composants", "type": "COMP"},
-            {"url": "/58-peripheriques", "type": "PER"}
+            {"url": "/20-composants", "type": COMPONENTS},
+            {"url": "/58-peripheriques", "type": PERIPHERALS}
         ],
         "scraper": "ultrapc"
     },
     "https://nextlevelpc.ma": {
         "categories": [
-            {"url": "/143-composants", "type": "COMP"},
-            {"url": "/148-peripherique-pc", "type": "PER"},
-            {"url": "/189-ecran-pc", "type": "PER"}
+            {"url": "/143-composants", "type": COMPONENTS},
+            {"url": "/148-peripherique-pc", "type": PERIPHERALS},
+            {"url": "/189-ecran-pc", "type": PERIPHERALS}
         ],
         "scraper": "nextlevelpc"
     },
     "https://techspace.ma": {
         "categories": [
-            {"url": "/collections/composants", "type": "COMP"},
-            {"url": "/collections/peripheriques", "type": "PER"}
+            {"url": "/collections/composants", "type": COMPONENTS},
+            {"url": "/collections/peripheriques", "type": PERIPHERALS}
         ],
         "scraper": "techspace"
     }
