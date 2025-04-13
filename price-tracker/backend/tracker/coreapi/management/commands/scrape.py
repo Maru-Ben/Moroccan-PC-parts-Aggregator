@@ -3,8 +3,8 @@ import asyncio, time
 
 from coreapi.models import Product, Website
 
-from scraper.logger import logger
-from scraper.main import scrape_websites_async, scrape_websites
+from coreapi.scraper.logger import logger
+from coreapi.scraper.main import scrape_websites_async, scrape_websites
 
 class Command(BaseCommand):
     help = "Scrape websites for products"
@@ -16,7 +16,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         start_time = time.time()
         products = []
-        if args.method == 'async':
+        if options['method'] == 'async':
             logger.info("Starting asynchronous scraping...")
             products = asyncio.run(scrape_websites_async())
         else:
@@ -35,7 +35,7 @@ class Command(BaseCommand):
         logger.info("Starting products ingestion into the database")
         Product.objects.all().update(seen = False)
         for product in products:
-            website = Website.objects.update_or_create(name = product["website"])
+            website_obj, created = Website.objects.update_or_create(name = product["website"])
             Product.objects.update_or_create(
                 id = product["id"],
                 defaults={
@@ -45,7 +45,7 @@ class Command(BaseCommand):
                     "image_url": product["image_url"],
                     "price": product["price"],
                     "availability": product["availability"],
-                    "website": website,
+                    "website": website_obj,
                     "category": product["category"],
                     "seen": True,
                 }
