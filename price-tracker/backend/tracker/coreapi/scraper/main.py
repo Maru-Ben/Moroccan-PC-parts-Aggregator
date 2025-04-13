@@ -5,6 +5,7 @@ import time
 from typing import Dict
 import aiohttp
 from bs4 import BeautifulSoup
+from pathlib import Path
 
 from .logger import logger
 from .scapers import extract_ultrapc_products, extract_nextlevelpc_products, extract_techspace_products
@@ -53,11 +54,35 @@ def scrape_websites():
         products.extend(category_products)
         
     logger.info(f"Scraped {len(products)} total products across {len(URLS)} sites.")
-    with open("scraper/json/products.json", "w", encoding="utf-8") as f:
+    
+    json_dir = Path(__file__).parent / "json"
+    json_dir.mkdir(parents=True, exist_ok=True)
+    output_file = json_dir / "products.json"
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(products, f, ensure_ascii=False, indent=4)
          
     return products
 
+async def scrape_websites_async():
+    """Main async function to scrape all websites."""
+    tasks = []
+    for base_url, site_info in URLS.items():
+        for category in site_info["categories"]:
+            task = scrape_category_async(base_url, category, site_info["scraper"])
+            tasks.append(task)
+    
+    results = await asyncio.gather(*tasks)
+    all_products = [product for sublist in results for product in sublist]
+    logger.info(f"Scraped {len(all_products)} total products across {len(URLS)} sites.")
+    # Save results to file
+    json_dir = Path(__file__).parent / "json"
+    json_dir.mkdir(parents=True, exist_ok=True)
+    output_file = json_dir / "async_products.json"
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(all_products, f, ensure_ascii=False, indent=4)
+        
+    return all_products
+  
 def scrape_category(url, categories, scraper):
     """scrape one ultrapc category 
 
@@ -120,24 +145,6 @@ def scrape_category(url, categories, scraper):
             continue
     return all_category_products
  
-  
-async def scrape_websites_async():
-    """Main async function to scrape all websites."""
-    tasks = []
-    for base_url, site_info in URLS.items():
-        for category in site_info["categories"]:
-            task = scrape_category_async(base_url, category, site_info["scraper"])
-            tasks.append(task)
-    
-    results = await asyncio.gather(*tasks)
-    all_products = [product for sublist in results for product in sublist]
-    logger.info(f"Scraped {len(all_products)} total products across {len(URLS)} sites.")
-    # Save results to file
-    with open("scraper/json/products_async.json", "w", encoding="utf-8") as f:
-        json.dump(all_products, f, ensure_ascii=False, indent=4)
-        
-    return all_products
-  
 async def scrape_category_async(url: str, category: Dict[str, str], scraper: str):
     """Scrape a category asynchronously"""
     try:
