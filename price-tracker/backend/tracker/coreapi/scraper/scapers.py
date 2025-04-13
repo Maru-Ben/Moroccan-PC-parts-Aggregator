@@ -34,7 +34,7 @@ def extract_ultrapc_products(soup: BeautifulSoup, category_type: str):
             product_name = name_and_url_tag.text.lower().strip() if name_and_url_tag else None
             
             product = {
-                "id": generate_product_id(product_name, "ultrapc", product_url),
+                "id": generate_product_id(product_name, product_url),
                 "name": product_name,
                 "url": product_url,
                 "short_description": short_description_tag.text.lower().strip() if short_description_tag else None,
@@ -88,7 +88,7 @@ def extract_nextlevelpc_products(soup, category_type):
             product_url = url_tag["href"]
             
             product = {
-                "id": generate_product_id(product_name, "nextlevelpc", product_url),
+                "id": generate_product_id(product_name, product_url),
                 "name": product_name,
                 "url": product_url,
                 "short_description": normalize_spaces(short_description.lower().strip()) if short_description else None,
@@ -148,7 +148,7 @@ def extract_techspace_products(url, soup, category_type):
             product_url = url + name_and_url_tag["href"]
             
             product = {
-                "id": generate_product_id(product_name, "techspace", product_url),
+                "id": generate_product_id(product_name, product_url),
                 "name": product_name,
                 "url": product_url,
                 "short_description": None,
