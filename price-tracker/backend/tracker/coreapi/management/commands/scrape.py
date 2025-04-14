@@ -28,7 +28,7 @@ class Command(BaseCommand):
         
         self.ingest_products(products)
         
-        ingestion_elapsed_time = time.time() - scraping_elapsed_time
+        ingestion_elapsed_time = time.time() - scraping_elapsed_time - start_time
         logger.info(f"Ingestion completed in {ingestion_elapsed_time:.2f} seconds")
         
     def ingest_products(self, products):
