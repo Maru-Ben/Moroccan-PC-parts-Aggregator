@@ -19,3 +19,6 @@ scraper/logs/
 
 # Scraper output
 json
+
+# Vs code
+/.vscode
