@@ -2,10 +2,9 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 class Website(models.Model):
-    name = models.CharField(_("Website name"), max_length=50),
-    created_at = models.DateTimeField(_("First added"), auto_now_add=True),
+    name = models.CharField(_("Website name"), max_length=50)
+    created_at = models.DateTimeField(_("First added"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Last updated"), auto_now=True)
-
 
 class Product(models.Model):
     class Category(models.TextChoices):
