@@ -17,7 +17,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         
         if query:
             # Fuzzy search
-            products = Product.objects.annotate(similarity = TrigramSimilarity('name', query)).filter(similarity__gte=0.1).order_by('-similarity')[:10]
+            products = Product.objects.annotate(similarity = TrigramSimilarity('name', query)).filter(similarity__gte=0.2).order_by('-similarity')[:10]
         else:
             products = Product.objects.all()
         
