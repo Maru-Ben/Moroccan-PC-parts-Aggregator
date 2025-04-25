@@ -11,7 +11,7 @@ class Product(models.Model):
         COMPONENTS = 'COMP', _('Components')
         PERIPHERALS = 'PER', _('Peripherals')
         
-    id = models.CharField(primary_key=True, max_length=50, unique=True)
+    id = models.CharField(primary_key=True, max_length=100, unique=True)
     name = models.CharField(_("Product name"), max_length=200, db_index=True)
     short_description = models.TextField(_("Product Description"), blank=True, null=True)
     url = models.URLField(_("Product URL"), max_length=200)
