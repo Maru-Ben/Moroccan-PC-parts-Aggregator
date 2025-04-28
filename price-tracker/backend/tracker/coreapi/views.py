@@ -5,7 +5,7 @@ from .serializers import ProductSerializer, WebsiteSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.postgres.search import TrigramSimilarity
-
+from django.db.models import Case, When, Value, IntegerField
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
@@ -17,7 +17,7 @@ class ProductViewSet(viewsets.ModelViewSet):
         
         if query:
             # Fuzzy search
-            products = Product.objects.annotate(similarity = TrigramSimilarity('name', query)).filter(similarity__gte=0.2).order_by('-similarity')[:10]
+            products = Product.objects.annotate(similarity = TrigramSimilarity('name', query)).filter(similarity__gte=0.1).order_by('-similarity')[:30]
         else:
             products = Product.objects.all()
         
