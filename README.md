@@ -4,3 +4,4 @@
 
 ### TODO
  - [ ] add a logic in the scraping to change scrape agent if one fails
+ - [ ] AI PC builder to help users build their PC based on their needs and budget

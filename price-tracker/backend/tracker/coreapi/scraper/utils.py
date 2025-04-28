@@ -20,29 +20,37 @@ def normalize_spaces(text):
     """Normalize spaces in text, including unicode spaces (html text code)"""
     return ''.join(' ' if unicodedata.category(c) == 'Zs' else c for c in text)
 
-
-def extract_price(price):
-    """Extract price value from a string and convert to float."""
+def extract_price(price: str) -> Optional[float]:
+    """Extract price value from a string and convert to float, handling different formats."""
     if not price:
         return None
     
-    extracted_price = normalize_spaces(price) # handle &nbsp; and others
-    match = re.search(r'[\d\s]+[.,]\d{2}', extracted_price)
-    if match:
-        number = match.group(0).replace(" ", "").replace(",", ".")
-        try:
-            return float(number)
-        except ValueError:
-            logger.warning(f"Failed to convert price: {price}")
-            return None
-    return None
+    normalized = re.sub(r'[^\d.,]', '', price.strip())
+    
+    if '.' in normalized and ',' in normalized:
+        if normalized.rfind('.') < normalized.rfind(','):
+            normalized = normalized.replace('.', '').replace(',', '.')
+        else:
+            normalized = normalized.replace(',', '')
+    elif ',' in normalized:
+        if len(normalized.split(',')[-1]) != 3:
+            normalized = normalized.replace(',', '.')
+        else:
+            normalized = normalized.replace(',', '')
+    
+    try:
+        return float(normalized)
+    except ValueError:
+        numbers = re.findall(r'\d+', price)
+        if numbers:
+            return float(max(numbers, key=len))
+        return None
 
 
-def generate_product_id(name: str, url:str) -> str:
+def generate_product_id(website: int, url: str) -> str:
     """Generate a consistent hash ID for a product."""
-    id_string = f"{name}|{url}"
-    return hashlib.md5(id_string.encode()).hexdigest()
-
+    input_str = f"{website}|{url}".lower().strip("/")
+    return hashlib.sha256(input_str.encode()).hexdigest()
 
 def get_page_with_retry(url:str, headers: dict, max_retries: int=3, scraper_type: str = "requests") -> Optional[str]:
     """Fetch page content with retry mechanism for reliability."""
