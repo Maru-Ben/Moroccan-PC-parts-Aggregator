@@ -5,7 +5,6 @@ from .serializers import ProductSerializer, WebsiteSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.postgres.search import TrigramSimilarity
-from django.db.models import Case, When, Value, IntegerField
 
 class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
