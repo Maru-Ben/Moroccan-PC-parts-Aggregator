@@ -27,3 +27,4 @@ json
 .next/
 next-env.d.ts
 node_modules
+test.py
