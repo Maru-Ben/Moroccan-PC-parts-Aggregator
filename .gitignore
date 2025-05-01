@@ -22,3 +22,8 @@ json
 
 # Vs code
 /.vscode
+
+# Frontend
+.next/
+next-env.d.ts
+node_modules
