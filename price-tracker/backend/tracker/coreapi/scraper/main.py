@@ -9,7 +9,7 @@ from pathlib import Path
 
 from .logger import logger
 from .scapers import extract_ultrapc_products, extract_nextlevelpc_products, extract_techspace_products
-from .utils import fetch_async, respect_rate_limits, get_page_with_retry
+from .utils import fetch_async, respect_rate_limits, get_page_with_retry, fetch_with_retry
 
 # Mirroring the choices in my Product model
 COMPONENTS = "COMP" 
@@ -74,6 +74,7 @@ async def scrape_websites_async():
     results = await asyncio.gather(*tasks)
     all_products = [product for sublist in results for product in sublist]
     logger.info(f"Scraped {len(all_products)} total products across {len(URLS)} sites.")
+    
     # Save results to file
     json_dir = Path(__file__).parent / "json"
     json_dir.mkdir(parents=True, exist_ok=True)
@@ -146,25 +147,64 @@ def scrape_category(url, categories, scraper):
     return all_category_products
  
 async def scrape_category_async(url: str, category: Dict[str, str], scraper: str):
-    """Scrape a category asynchronously"""
+    """
+    Scrape a category asynchronously with improved reliability
+    
+    Args:
+        url: Base URL of the website
+        category: Dictionary containing category information
+        scraper: Identifier for the scraper type (ultrapc, nextlevelpc, techspace)
+    """
     try:
         page = 1
         category_products = []
         has_products = True
+        retries = 0
+        max_page_retries = 1
+        
+        scraper_method = "aiohttp"  # default to fastest
+        if scraper == "nextlevelpc" or scraper == 'ultrapc':
+            # if we know this site needs more powerful methods
+            scraper_method = "cloudscraper"
         
         while has_products:
             page_url = f"{url + category['url']}?page={page}"
-            logger.info(f"Async scraping: {page_url}")
+            logger.info(f"Async scraping: {page_url} with {scraper_method}")
             
-            # Add delay for rate limiting
+            # Add delay for rate limiting with slight randomization
             await asyncio.sleep(random.uniform(1, 3))
-            if scraper == "nextlevelpc":
-                html_content = await fetch_async(page_url, HEADERS, "cloudscraper")
-            else:
-                html_content = await fetch_async(page_url, HEADERS)
+            
+            # Use our progressive fetch with retry
+            html_content = await fetch_with_retry(
+                page_url, 
+                HEADERS,
+                max_retries=max_page_retries,
+                start_method=scraper_method  # Start with the appropriate method
+            )
             
             if not html_content:
-                raise Exception(f"Failed to get content for {page_url} (Async)")
+                # If we've already retried the max times for this page
+                if retries >= max_page_retries:
+                    logger.error(f"Failed to get content for {page_url} after {max_page_retries} retries")
+                    has_products = False
+                    continue
+                    
+                # Otherwise increment retry counter and try again
+                retries += 1
+                logger.warning(f"Retry {retries}/{max_page_retries} for {page_url}")
+                
+                # Try a more powerful method on retry
+                if scraper_method == "aiohttp":
+                    scraper_method = "cloudscraper"
+                elif scraper_method == "cloudscraper":
+                    scraper_method = "playwright"
+                    
+                # Wait longer before retrying
+                await asyncio.sleep(random.uniform(3, 5))
+                continue
+            
+            # Reset retry counter on success
+            retries = 0
             
             soup = BeautifulSoup(html_content, "html.parser")
             page_products = []
@@ -182,18 +222,16 @@ async def scrape_category_async(url: str, category: Dict[str, str], scraper: str
                 category_products.extend(page_products)
                 page += 1
         
-        if category_products == []:
+        if not category_products:
             raise Exception(f"No products were scrapped from the whole category")
         return category_products
-    except aiohttp.ClientError as e:
-        logger.error(f"Network error while scraping {url}: {e}")
-        logger.warning(f"Falling back to sync may cause partial duplication in {category['url']}")
-        return scrape_category(url, [category], scraper)
+        
     except Exception as e:
         logger.error(f"Async scraping failed for {url + category['url']}: {str(e)}")
-        logger.warning(f"Falling back to sync may cause partial duplication in {category['url']}")
+        logger.warning(f"Falling back to sync method for {category['url']}")
         # Call sync version instead
         return scrape_category(url, [category], scraper)
+
 
 if __name__ == "__main__":
     import argparse

@@ -8,6 +8,7 @@ import re
 import aiohttp
 import cloudscraper
 import requests
+import playwright
 
 from .logger import logger
 
@@ -79,38 +80,109 @@ def get_page_with_retry(url:str, headers: dict, max_retries: int=3, scraper_type
     return None
 
 
+async def fetch_with_retry(url, headers=None, max_retries=3, start_method="aiohttp"):
+    """
+    Fetch a URL using progressively more powerful scraping methods.
+    Starts with the specified method and escalates as needed.
+    
+    Args:
+        url: The URL to fetch
+        headers: Optional request headers
+        max_retries: Maximum number of retry attempts across all methods
+        start_method: The scraping method to start with ("aiohttp", "cloudscraper", or "playwright")
+    """
+    # define scraping methods in order of increasing complexity/power
+    methods = ["aiohttp", "cloudscraper", "playwright"]
+    
+    # find the starting index based on the specified start method
+    start_index = methods.index(start_method) if start_method in methods else 0
+    
+    # try each method starting from the specified one
+    retry_count = 0
+    for i in range(start_index, len(methods)):
+        method = methods[i]
+        
+        if retry_count >= max_retries:
+            logger.warning(f"Exceeded maximum retries ({max_retries}) for {url}")
+            return None
+            
+        logger.info(f"Attempting to fetch {url} using {method} (attempt {retry_count + 1})")
+        result = await fetch_async(url, headers, scraper_type=method)
+        
+        if result is not None:
+            logger.info(f"Successfully fetched {url} using {method}")
+            return result
+            
+        retry_count += 1
+        
+    logger.error(f"All methods failed for {url} after {retry_count} attempts")
+    return None
+
+
 async def fetch_async(url, headers, scraper_type="aiohttp"):
+    """
+    Fetch a URL using the specified scraper type.
+    
+    Args:
+        url: The URL to fetch
+        headers: request headers
+        scraper_type: "aiohttp", "cloudscraper", or "playwright"
+    """
     try:
-        if scraper_type == "cloudscraper":
-            loop = asyncio.get_event_loop()
-            cloud = cloudscraper.create_scraper()
-            return await loop.run_in_executor(
-                None, lambda: cloud.get(url, headers=headers).text
-            )
-        else:
-            # Regular aiohttp fetch
+        # Method 1: Regular aiohttp (fastest)
+        if scraper_type == "aiohttp":
             async with aiohttp.ClientSession() as session:
                 try:
                     async with session.get(url, headers=headers) as response:
                         if response.status == 200:
                             return await response.text()
-                        elif response.status == 429:
-                            logger.warning(f"Rate limited at {url}")
-                            raise aiohttp.ClientConnectionError(
-                                request_info=response.request_info,
-                                history=response.history,
-                                status=429
-                            )
                         else:
-                            logger.warning(f"Failed to fetch {url} - Status code: {response.status}")
+                            logger.warning(f"aiohttp fetch failed for {url} - Status code: {response.status}")
                             return None
-                except aiohttp.ClientTimeout:
-                    logger.error(f"Timeout while fetching {url}")
+                except (aiohttp.ClientTimeout, aiohttp.ClientConnectionError) as e:
+                    logger.error(f"aiohttp error fetching {url}: {str(e)}")
                     return None
-                except aiohttp.ClientConnectionError:
-                    logger.error(f"Connection error while fetching {url}")
-                    return None
-    except Exception as e:
-        logger.error(f"Unexpected error fetching {url}: {str(e)})")
-        return None
+        
+        # Method 2: Cloudscraper (medium)
+        elif scraper_type == "cloudscraper":
+            import cloudscraper
+            loop = asyncio.get_event_loop()
+            cloud = cloudscraper.create_scraper()
             
+            response = await loop.run_in_executor(
+                None, lambda: cloud.get(url, headers=headers)
+            )
+            
+            if response.status_code == 200:
+                return response.text
+            else:
+                logger.warning(f"cloudscraper fetch failed for {url} - Status code: {response.status_code}")
+                return None
+        
+        # Method 3: Playwright (slowest but most powerful)
+        elif scraper_type == "playwright":
+            from playwright.async_api import async_playwright
+            
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(headless=True)
+                context = await browser.new_context(user_agent=headers.get("User-Agent"))
+                page = await context.new_page()
+                
+                # Navigate to the URL
+                await page.goto(url, wait_until="networkidle", timeout=30000)
+                
+                # Get the HTML content
+                content = await page.content()
+                
+                # Close browser
+                await browser.close()
+                
+                return content
+                
+        else:
+            logger.error(f"Unknown scraper type: {scraper_type}")
+            return None
+            
+    except Exception as e:
+        logger.error(f"Unexpected error fetching {url} with {scraper_type}: {str(e)}")
+        return None

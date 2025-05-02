@@ -32,6 +32,14 @@ def extract_ultrapc_products(soup: BeautifulSoup, category_type: str):
             
             product_url = name_and_url_tag["href"] if name_and_url_tag else None
             product_name = name_and_url_tag.text.lower().strip() if name_and_url_tag else None
+            if product_name.endswith('...'):
+                if image_tag and image_tag.get('alt'):
+                    product_name = image_tag['alt'].lower().strip().replace(' ultra pc gamer maroc', '')
+                # remove 2 words because they add some specification at the end of the name of the product (it's mostly 3 words but to be safe i remove only 2)
+                if product_name:
+                    words = product_name.split()
+                    if len(words) > 2:
+                        product_name = ' '.join(words[:-2])
             
             product = {
                 "id": generate_product_id("ultrapc", product_url),
@@ -121,8 +129,8 @@ def extract_techspace_products(url, soup, category_type):
     items = soup.select("div.product-list div.product-item")
     for item in items:
         try:
-            name_and_url_tag = item.select_one("div.product-item__title-info a.product-item__title") # href is the url and the text is the text
-            if not name_and_url_tag:
+            url_tag = item.select_one("div.product-item__title-info a.product-item__title") # href is the url and the text is the text
+            if not url_tag:
                 continue
             image_tag = item.select_one("a.product-item__image-wrapper img.product-item__primary-image") # src of the image tag
             price_tag = item.select_one("span.price") # content element of this tag is the price
@@ -144,8 +152,8 @@ def extract_techspace_products(url, soup, category_type):
             if price_tag:
                 cleaned_price = extract_price(price_tag.text.lower().strip()) 
             
-            product_name = name_and_url_tag.text.lower().strip()
-            product_url = url + name_and_url_tag["href"]
+            product_name = image_tag['alt'].lower().replace('maroc','').replace('prix','').replace('casablanca','').strip()
+            product_url = url + url_tag["href"]
             
             product = {
                 "id": generate_product_id("techspace", product_url),
