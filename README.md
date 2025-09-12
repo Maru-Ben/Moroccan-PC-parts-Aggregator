@@ -1,7 +1,12 @@
 # Moroccan PC parts Aggregator
+
  A centralized platform that aggregates and compares PC parts prices from various Moroccan e-commerce websites. The goal is to simplify the shopping experience for PC enthusiasts, gamers, and professionals by providing real-time price data, product availability, and deal alerts in one place.
 
+## TODO
 
-### TODO
- - [ ] add a logic in the scraping to change scrape agent if one fails
- - [ ] AI PC builder to help users build their PC based on their needs and budget
+- [ ] add a logic in the scraping to change scrape agent if one fails
+- [ ] AI PC builder to help users build their PC based on their needs and budget
+
+## Improvements
+
+- [ ] add refresh stock status when user clicks on a product
