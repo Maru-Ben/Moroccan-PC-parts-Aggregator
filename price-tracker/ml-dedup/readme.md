@@ -18,7 +18,9 @@ This document presents a **learned**, **data-driven** approach using a fine-tune
 The guide is comprehensive enough for a junior engineer to implement, deploy, and iterate on the system.
 
 ---
+
 ## Table of Contents
+
 - [Guide: Implementing a Robust Cross-Encoder Pipeline for Product Deduplication](#guide-implementing-a-robust-cross-encoder-pipeline-for-product-deduplication)
   - [Overview and Context](#overview-and-context)
   - [Table of Contents](#table-of-contents)
@@ -37,19 +39,20 @@ The guide is comprehensive enough for a junior engineer to implement, deploy, an
   - [Code Organization \& Deployment](#code-organization--deployment)
   - [Why This Is the Best Solution](#why-this-is-the-best-solution)
   - [Next Steps \& Milestones](#next-steps--milestones)
+  - [How to run](#how-to-run)
 
 ## System Requirements & Dependencies
 
 - **Python 3.8+**
 - **Libraries**:
-    - `sentence-transformers` (for bi-encoder and cross-encoder)
-    - `faiss` (for approximate nearest neighbor search)
-    - `scikit-learn` (for metrics, optionally HDBSCAN)
-    - `pandas` (for dataset management)
-    - `captum` or similar (for attention/gradient visualization)
+  - `sentence-transformers` (for bi-encoder and cross-encoder)
+  - `faiss` (for approximate nearest neighbor search)
+  - `scikit-learn` (for metrics, optionally HDBSCAN)
+  - `pandas` (for dataset management)
+  - `captum` or similar (for attention/gradient visualization)
 - **Infrastructure**:
-    - GPU for model fine-tuning (NVIDIA T4 or better recommended)
-    - CPU for inference + blocking layer
+  - GPU for model fine-tuning (NVIDIA T4 or better recommended)
+  - CPU for inference + blocking layer
 - **Version control**: Git repository with separate branches for prototype, staging, and production.
 
 ---
@@ -125,11 +128,11 @@ This diagram shows how the system processes product titles through both a bi-enc
 
 - **Purpose**: Teach the model invariance to noise: reordering, filler insertion, and punctuation.
 - **Implementation**:
-    - Write `scripts/augment.py` that reads positive pairs and for each:
+  - Write `scripts/augment.py` that reads positive pairs and for each:
         1. **Shuffle non-core tokens** (using random permutations on stopword lists).
         2. **Inject random filler phrases** from a small pool (`edition speciale`, `bulk memory`, etc.).
         3. **Randomly remove parentheses** or punctuation.
-    - Append these synthetic pairs (with `label=1`) to `train.csv`, ensuring balance with negatives.
+  - Append these synthetic pairs (with `label=1`) to `train.csv`, ensuring balance with negatives.
 
 ### Fine-Tuning the Cross-Encoder
 
@@ -327,3 +330,19 @@ Alternative approaches collapse under real-world noise or require constant rule 
 3. **Step 3**: Build FAISS index, run initial clustering, compare to ground truth.
 4. **Step  4**: Deploy inference API, set up logging of gray-zone scores.
 5. **Step 5+**: Monthly error review and retraining; integrate explainability in dashboard.
+
+---
+
+## How to run
+
+1. **Install dependencies**:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Run main script**:
+
+   ```bash
+   python -m ml_dedup
+   ```

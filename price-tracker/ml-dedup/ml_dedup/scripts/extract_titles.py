@@ -1,4 +1,4 @@
-from ml_dedup.pipeline.db import fetch_sorted_titles
+from ..pipeline.db import fetch_sorted_titles
 
 def run():
     df = fetch_sorted_titles()

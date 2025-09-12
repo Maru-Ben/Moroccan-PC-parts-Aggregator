@@ -1,7 +1,7 @@
 import argparse
-from ml_dedup.scripts.extract_titles import run as extract_titles
-from ml_dedup.scripts.preprocess_titles import run as preprocess
-from ml_dedup.scripts.label_pairs import run as start_labeling
+from .scripts.extract_titles import run as extract_titles
+from .scripts.preprocess_titles import run as preprocess
+from .scripts.label_pairs import run as start_labeling
 
 
 def main():
