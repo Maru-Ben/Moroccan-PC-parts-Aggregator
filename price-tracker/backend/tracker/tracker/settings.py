@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-from decouple import config
+from coreapi.config import settings
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -91,11 +91,11 @@ WSGI_APPLICATION = 'tracker.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME'),
-        'USER': config('DB_USER'),
-        'PASSWORD': config('DB_PASSWORD'),
-        'HOST': config('DB_HOST'),
-        'PORT': config('DB_PORT'),
+        'NAME': settings.DB_NAME,
+        'USER': settings.DB_USER,
+        'PASSWORD': settings.DB_PASSWORD,
+        'HOST': settings.DB_HOST,
+        'PORT': settings.DB_PORT,
     }
 }
 

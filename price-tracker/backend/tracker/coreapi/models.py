@@ -1,5 +1,8 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from coreapi.constants import CATEGORIES
+
+CATEGORY_CHOICES = [(cat, cat.capitalize()) for cat in CATEGORIES]
 
 class Website(models.Model):
     name = models.CharField(_("Website name"), max_length=50)

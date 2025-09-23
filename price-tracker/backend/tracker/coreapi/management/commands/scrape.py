@@ -3,8 +3,8 @@ import asyncio, time
 
 from coreapi.models import Product, Website
 
-from coreapi.scraper.logger import logger
-from coreapi.scraper.main import scrape_websites_async, scrape_websites
+from coreapi.services.scraper.logger import logger
+from coreapi.services.scraper.main import scrape_websites_async, scrape_websites
 
 class Command(BaseCommand):
     help = "Scrape websites for products"
