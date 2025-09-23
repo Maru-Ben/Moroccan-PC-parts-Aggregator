@@ -9,6 +9,7 @@ CATEGORIES = {
     "CASE": "case"
 }
 
+# TODO ADD WEBSITES
 SCRAPING_URLS = {
     "https://www.ultrapc.ma": {
         "categories": [
