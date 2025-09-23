@@ -8,10 +8,7 @@ def extract_ultrapc_products(soup: BeautifulSoup, category_type: str):
     """Extract from one page all the products then send them in a list
 
     Args:
-        soup (string): this is the return of the BeautifySoup call
-
-    Returns:
-        soup (array): array of the products with details
+        soup (array): bs4 soup
         category_type (string): name of the category in english
     """
     page_products = []
@@ -56,10 +53,7 @@ def extract_nextlevelpc_products(soup, category_type):
     """Extract from one page all the products then send them in a list
 
     Args:
-        soup (string): this is the return of the BeautifySoup call
-
-    Returns:
-        soup (array): array of the products with details
+        soup (array): bs4 soup
         category_type (string): name of the category in english
     """
     page_products = []

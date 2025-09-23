@@ -10,50 +10,19 @@ from pathlib import Path
 from .logger import logger
 from .scapers import extract_ultrapc_products, extract_nextlevelpc_products, extract_techspace_products
 from .utils import fetch_async, respect_rate_limits, get_page_with_retry
+from coreapi.constants import SCRAPING_URLS, SCRAPING_HEADERS, SCRAPING_WAIT
 
-# Mirroring the choices in my Product model
-COMPONENTS = "COMP" 
-PERIPHERALS = "PER" 
-
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
-}
-
-URLS = {
-    "https://www.ultrapc.ma": {
-        "categories": [
-            {"url": "/20-composants", "type": COMPONENTS},
-            {"url": "/58-peripheriques", "type": PERIPHERALS}
-        ],
-        "scraper": "ultrapc"
-    },
-    "https://nextlevelpc.ma": {
-        "categories": [
-            {"url": "/143-composants", "type": COMPONENTS},
-            {"url": "/148-peripherique-pc", "type": PERIPHERALS},
-            {"url": "/189-ecran-pc", "type": PERIPHERALS}
-        ],
-        "scraper": "nextlevelpc"
-    },
-    "https://techspace.ma": {
-        "categories": [
-            {"url": "/collections/composants", "type": COMPONENTS},
-            {"url": "/collections/peripheriques", "type": PERIPHERALS}
-        ],
-        "scraper": "techspace"
-    }
-}
 
 
 def scrape_websites():
     products = []
     # we check all urls in our dict then we call the concerned function
-    for base_url, site_info in URLS.items():
+    for base_url, site_info in SCRAPING_URLS.items():
         logger.info(f"Scraping {site_info['scraper']}...")
         category_products = scrape_category(base_url, site_info["categories"], site_info['scraper'])
         products.extend(category_products)
         
-    logger.info(f"Scraped {len(products)} total products across {len(URLS)} sites.")
+    logger.info(f"Scraped {len(products)} total products across {len(SCRAPING_URLS)} sites.")
     
     json_dir = Path(__file__).parent / "json"
     json_dir.mkdir(parents=True, exist_ok=True)
@@ -66,14 +35,14 @@ def scrape_websites():
 async def scrape_websites_async():
     """Main async function to scrape all websites."""
     tasks = []
-    for base_url, site_info in URLS.items():
+    for base_url, site_info in SCRAPING_URLS.items():
         for category in site_info["categories"]:
             task = scrape_category_async(base_url, category, site_info["scraper"])
             tasks.append(task)
     
     results = await asyncio.gather(*tasks)
     all_products = [product for sublist in results for product in sublist]
-    logger.info(f"Scraped {len(all_products)} total products across {len(URLS)} sites.")
+    logger.info(f"Scraped {len(all_products)} total products across {len(SCRAPING_URLS)} sites.")
     # Save results to file
     json_dir = Path(__file__).parent / "json"
     json_dir.mkdir(parents=True, exist_ok=True)
@@ -109,9 +78,9 @@ def scrape_category(url, categories, scraper):
                 # Get page content based on scraper type
                 html_content = None
                 if scraper == "ultrapc":
-                    html_content = get_page_with_retry(page_url, HEADERS, scraper_type="requests")
+                    html_content = get_page_with_retry(page_url, SCRAPING_HEADERS, scraper_type="requests")
                 else:
-                    html_content = get_page_with_retry(page_url, HEADERS, scraper_type="cloudscraper")
+                    html_content = get_page_with_retry(page_url, SCRAPING_HEADERS, scraper_type="cloudscraper")
                 
                 if not html_content:
                     raise Exception(f"Failed to fetch page: {page_url}")
@@ -157,11 +126,11 @@ async def scrape_category_async(url: str, category: Dict[str, str], scraper: str
             logger.info(f"Async scraping: {page_url}")
             
             # Add delay for rate limiting
-            await asyncio.sleep(random.uniform(1, 3))
+            await asyncio.sleep(random.uniform(SCRAPING_WAIT["min_seconds"], SCRAPING_WAIT["max_seconds"]))
             if scraper == "nextlevelpc":
-                html_content = await fetch_async(page_url, HEADERS, "cloudscraper")
+                html_content = await fetch_async(page_url, SCRAPING_HEADERS, "cloudscraper")
             else:
-                html_content = await fetch_async(page_url, HEADERS)
+                html_content = await fetch_async(page_url, SCRAPING_HEADERS)
             
             if not html_content:
                 raise Exception(f"Failed to get content for {page_url} (Async)")

@@ -8,12 +8,13 @@ import re
 import aiohttp
 import cloudscraper
 import requests
+from coreapi.constants import SCRAPING_WAIT
 
 from .logger import logger
 
 def respect_rate_limits() -> None:
     """Add a random delay between requests to avoid overwhelming servers."""
-    time.sleep(random.uniform(1, 3))
+    time.sleep(random.uniform(SCRAPING_WAIT["min_seconds"], SCRAPING_WAIT["max_seconds"]))
     
     
 def normalize_spaces(text):
