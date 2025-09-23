@@ -1,0 +1,7 @@
+django==5.2.6
+djangorestframework==3.16.1
+aiohttp==3.12.15
+beautifulsoup4==4.13.5
+python-decouple==3.8
+psycopg2-binary==2.9.10
+cloudscraper==1.2.71
