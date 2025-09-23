@@ -69,7 +69,8 @@ Moroccan-PC-parts-Aggregator/
 ## TODO
 
 * [ ] Modify the scraper to get the full product name, would mean to go into the product page.
-* [ ] add a way to hold the config.
+* [x] add a way to hold the config.
+* [ ] add the specific link for categories to scrape.
 
 ## Improvements
 
