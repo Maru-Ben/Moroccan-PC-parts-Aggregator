@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 
 from .logger import logger
-from .scapers import extract_ultrapc_products, extract_nextlevelpc_products, extract_techspace_products
+from .scapers import extract_ultrapc_products, extract_nextlevelpc_products, extract_techspace_products, get_content_from_page
 from .utils import fetch_async, respect_rate_limits, get_page_with_retry
 from coreapi.constants import SCRAPING_URLS, SCRAPING_HEADERS, SCRAPING_WAIT
 
@@ -127,23 +127,15 @@ async def scrape_category_async(url: str, category: Dict[str, str], scraper: str
             
             # Add delay for rate limiting
             await asyncio.sleep(random.uniform(SCRAPING_WAIT["min_seconds"], SCRAPING_WAIT["max_seconds"]))
-            if scraper == "nextlevelpc":
-                html_content = await fetch_async(page_url, SCRAPING_HEADERS, "cloudscraper")
-            else:
-                html_content = await fetch_async(page_url, SCRAPING_HEADERS)
-            
-            if not html_content:
-                raise Exception(f"Failed to get content for {page_url} (Async)")
-            
-            soup = BeautifulSoup(html_content, "html.parser")
+            soup = await get_content_from_page(page_url, scraper)
             page_products = []
             
             if scraper == "ultrapc":
-                page_products = extract_ultrapc_products(soup, category["type"])
+                page_products = await extract_ultrapc_products(soup, category["type"])
             elif scraper == "nextlevelpc":
-                page_products = extract_nextlevelpc_products(soup, category["type"])
+                page_products = await extract_nextlevelpc_products(soup, category["type"])
             elif scraper == "techspace":
-                page_products = extract_techspace_products(url, soup, category["type"])
+                page_products = await extract_techspace_products(url, soup, category["type"])
             
             if not page_products:
                 has_products = False

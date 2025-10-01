@@ -1,10 +1,37 @@
 from bs4 import BeautifulSoup
 from .logger import logger
-from .utils import normalize_spaces,extract_price, generate_product_id
+from .utils import fetch_async, normalize_spaces,extract_price, generate_product_id
+from coreapi.constants import SCRAPING_HEADERS
 
 
+
+async def get_content_from_page(page_url: str, scraper: str) -> BeautifulSoup:
+    if scraper == "nextlevelpc":
+        html_content = await fetch_async(page_url, SCRAPING_HEADERS, "cloudscraper")
+    else:
+        html_content = await fetch_async(page_url, SCRAPING_HEADERS)
+    
+    if not html_content:
+        raise Exception(f"Failed to get content for {page_url} (Async)")
+    
+    soup = BeautifulSoup(html_content, "html.parser")
+    return soup
+
+
+async def get_product_name(product_url: str, website: str) -> str:
+    soup = await get_content_from_page(page_url=product_url, scraper=website)
+    if website == "ultrapc":
+        product_name_tag = soup.select_one("div.product-block-info h1.product-title")
+        return product_name_tag.text.lower().strip() if product_name_tag else None
+    elif website == "techspace":
+        product_name_tag = soup.select_one("div.product-meta h1.product-meta__title")
+        return product_name_tag.text.lower().strip() if product_name_tag else None
+    else:
+        return None
+
+    
 # Ultra PC               
-def extract_ultrapc_products(soup: BeautifulSoup, category_type: str):
+async def extract_ultrapc_products(soup: BeautifulSoup, category_type: str):
     """Extract from one page all the products then send them in a list
 
     Args:
@@ -13,7 +40,6 @@ def extract_ultrapc_products(soup: BeautifulSoup, category_type: str):
     """
     page_products = []
     items = soup.select("div.product-block")
-    
     for item in items:
         try:
             name_and_url_tag = item.select_one(".product-title a") # href is the url and the text is the text
@@ -30,6 +56,13 @@ def extract_ultrapc_products(soup: BeautifulSoup, category_type: str):
             product_url = name_and_url_tag["href"] if name_and_url_tag else None
             product_name = name_and_url_tag.text.lower().strip() if name_and_url_tag else None
             
+            if "..." in product_name and product_url:
+                product_name = await get_product_name(product_url, "ultrapc")
+            
+            if not product_name:
+                logger.error(f"Product name not found for product {product_url}")
+                raise Exception("Product name not found")
+                
             product = {
                 "id": generate_product_id("ultrapc", product_url),
                 "name": product_name,
@@ -47,9 +80,10 @@ def extract_ultrapc_products(soup: BeautifulSoup, category_type: str):
             continue
         
     return page_products
-        
+
+
 # Next Level pc
-def extract_nextlevelpc_products(soup, category_type):
+async def extract_nextlevelpc_products(soup, category_type):
     """Extract from one page all the products then send them in a list
 
     Args:
@@ -61,9 +95,11 @@ def extract_nextlevelpc_products(soup, category_type):
     items = soup.select("div.products article.item")
     for item in items:
         try:
-            name_tag = item.select_one("div.product-title h2") # the text is the text
+            name_tag = item.select_one("div.product-title h3") # the text is the text
+
             url_tag = item.select_one("div.product-title a") #  href is the url
             if not name_tag or not url_tag:
+                logger.warning("couldnt find name_tag or url_tag")
                 continue
             image_tag = item.select_one("a.product-thumbnail img.tvproduct-defult-img") # src of the image tag
             price_tag = item.select_one("span.price") # text of the tag
@@ -99,8 +135,9 @@ def extract_nextlevelpc_products(soup, category_type):
         
     return page_products
 
+
 # Techspace
-def extract_techspace_products(url, soup, category_type):
+async def extract_techspace_products(url, soup, category_type):
     """Extract from one page all the products then send them in a list
 
     Args:
@@ -141,6 +178,13 @@ def extract_techspace_products(url, soup, category_type):
             product_name = name_and_url_tag.text.lower().strip()
             product_url = url + name_and_url_tag["href"]
             
+            if "..." in product_name and product_url:
+                product_name = await get_product_name(product_url, "techspace")
+            
+            if not product_name:
+                logger.error(f"Product name not found for product {product_url}")
+                raise Exception("Product name not found")
+            
             product = {
                 "id": generate_product_id("techspace", product_url),
                 "name": product_name,
@@ -158,4 +202,3 @@ def extract_techspace_products(url, soup, category_type):
             continue
         
     return page_products
-        
