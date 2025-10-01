@@ -13,23 +13,19 @@ CATEGORIES = {
 SCRAPING_URLS = {
     "https://www.ultrapc.ma": {
         "categories": [
-            {"url": "/20-composants", "type": COMPONENTS},
-            {"url": "/58-peripheriques", "type": PERIPHERALS}
+            {"url": "/39-cartes-graphiques", "type": CATEGORIES["GPU"]}
         ],
         "scraper": "ultrapc"
     },
     "https://nextlevelpc.ma": {
         "categories": [
-            {"url": "/143-composants", "type": COMPONENTS},
-            {"url": "/148-peripherique-pc", "type": PERIPHERALS},
-            {"url": "/189-ecran-pc", "type": PERIPHERALS}
+            {"url": "/144-carte-graphique-video-gpu", "type": CATEGORIES["GPU"]}
         ],
         "scraper": "nextlevelpc"
     },
     "https://techspace.ma": {
         "categories": [
-            {"url": "/collections/composants", "type": COMPONENTS},
-            {"url": "/collections/peripheriques", "type": PERIPHERALS}
+            {"url": "/collections/carte-graphique", "type": CATEGORIES["GPU"]}
         ],
         "scraper": "techspace"
     }
