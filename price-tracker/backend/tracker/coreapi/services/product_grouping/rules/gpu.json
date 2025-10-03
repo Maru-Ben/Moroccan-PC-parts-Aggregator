@@ -1,0 +1,42 @@
+{
+  "chipset_patterns": {
+    "nvidia": {
+      "patterns": ["rtx", "gtx", "gt", "mx"],
+      "brand": "NVIDIA",
+      "model_extraction": "(rtx|gtx|gt|mx)\\s*(\\d{4})\\s*(ti|super)?"
+    },
+    "amd": {
+      "patterns": ["rx"],
+      "brand": "AMD",
+      "model_extraction": "rx\\s*(\\d{3,4})\\s*(xt|xtx)?"
+    },
+    "intel": {
+      "patterns": ["arc"],
+      "brand": "Intel",
+      "model_extraction": "arc\\s*([a-z]?\\d+)"
+    }
+  },
+  "vram_patterns": [
+      "(\\d+)\\s*gb",
+      "(\\d+)gb",
+      "(\\d+)\\s*g\\b",
+      "(\\d+)\\s*go",
+      "(\\d+)\\s*go\\b"
+  ],
+  "board_partners": [
+    "asus", "msi", "gigabyte", "evga", "kfa2", "inno3d", "pny", "powercolor",
+    "asrock", "zotac", "palit", "xfx", "maxsun", "arktek", "gainward", "sapphire",
+    "acer", "aorus"
+  ],
+  "ignore_tokens": [
+    "gddr6", "gddr7", "gddr6x", "gddr5", "graphics", "card", "video",
+    "edition", "overclocked", "boost", "memory", "bulk", "oc", "special",
+    "exclusivite web", "blanc", "black", "pink", "geforce", "radeon", "amp",
+    "sans emballage"
+  ],
+  "similarity_weights": {
+    "core_match": 0.7,
+    "sub_brand_fuzzy": 0.3
+  },
+  "grouping_score_threshold": 0.85
+}
