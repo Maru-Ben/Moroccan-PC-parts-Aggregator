@@ -9,8 +9,9 @@ import aiohttp
 import cloudscraper
 import requests
 from coreapi.constants import SCRAPING_WAIT
+import logging
 
-from .logger import logger
+logger = logging.getLogger("backend.services")
 
 def respect_rate_limits() -> None:
     """Add a random delay between requests to avoid overwhelming servers."""

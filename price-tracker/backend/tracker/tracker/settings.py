@@ -25,7 +25,7 @@ setup_logging(
     json_logs=False,     
 )
 
-register_service_logger("backend_services", log_file="backend_services.log", level="DEBUG")
+register_service_logger("backend.services", log_file="backend_services.log", level="DEBUG")
 register_service_logger("api", log_file="api.log", level="DEBUG")
 
 # Quick-start development settings - unsuitable for production

@@ -1,7 +1,9 @@
 from bs4 import BeautifulSoup
-from .logger import logger
 from .utils import fetch_async, normalize_spaces,extract_price, generate_product_id
 from coreapi.constants import SCRAPING_HEADERS
+import logging
+
+logger = logging.getLogger("backend.services")
 
 
 

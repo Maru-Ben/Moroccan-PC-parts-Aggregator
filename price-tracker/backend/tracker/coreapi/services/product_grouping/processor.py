@@ -1,10 +1,12 @@
 from coreapi.services.product_grouping.normalizers import gpu
 from django.db import transaction
 from typing import List, Dict
-from coreapi.services.product_grouping.logger import logger
 from django.db.models import Min, F
 from coreapi.models import Product, ProductGroup, Website
 from coreapi.domain.product import scraped_product
+import logging
+
+logger = logging.getLogger("backend.services")
 
 
 class ProductProcessor:

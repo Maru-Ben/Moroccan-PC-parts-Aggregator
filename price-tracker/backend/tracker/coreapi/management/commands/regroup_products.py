@@ -1,5 +1,9 @@
 from django.core.management.base import BaseCommand
 from coreapi.services.product_grouping.processor import ProductProcessor
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class Command(BaseCommand):
     help = 'Re-group all products (useful after updating normalization rules)'

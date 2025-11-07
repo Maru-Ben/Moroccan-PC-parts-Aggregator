@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
-from coreapi.services.product_grouping.models import ProductSpecs
+from coreapi.domain.product import ProductSpecs
 from typing import Dict
 import re
+import logging
+
+logger = logging.getLogger("backend.services")
 
 class BaseNormalizer(ABC):
     def __init__(self, rules_path: str):
