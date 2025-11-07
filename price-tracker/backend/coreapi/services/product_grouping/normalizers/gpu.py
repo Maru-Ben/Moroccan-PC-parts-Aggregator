@@ -1,8 +1,11 @@
 import re
 from difflib import SequenceMatcher
 from coreapi.services.product_grouping.normalizers.base import BaseNormalizer
-from coreapi.services.product_grouping.models import ProductSpecs
+from coreapi.domain.product import ProductSpecs
 from coreapi.constants import CATEGORIES
+import logging
+
+logger = logging.getLogger("backend.services")
 
 class GPUNormalizer(BaseNormalizer):
     def __init__(self, rules_path):

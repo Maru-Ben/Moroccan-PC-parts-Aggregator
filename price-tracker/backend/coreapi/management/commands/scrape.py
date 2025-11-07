@@ -1,10 +1,11 @@
 from pathlib import Path
 from django.core.management.base import BaseCommand
 import asyncio, time, json
-
-from coreapi.services.scraper.logger import logger
 from coreapi.services.scraper.main import scrape_websites_async, scrape_websites
 from coreapi.services.product_grouping.processor import ProductProcessor
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Command(BaseCommand):
     help = "Scrape websites for products and group them"

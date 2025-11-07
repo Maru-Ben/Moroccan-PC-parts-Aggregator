@@ -6,11 +6,12 @@ from typing import Dict
 import aiohttp
 from bs4 import BeautifulSoup
 from pathlib import Path
-
-from .logger import logger
 from .scapers import extract_ultrapc_products, extract_nextlevelpc_products, extract_techspace_products, get_content_from_page
 from .utils import fetch_async, respect_rate_limits, get_page_with_retry
 from coreapi.constants import SCRAPING_URLS, SCRAPING_HEADERS, SCRAPING_WAIT
+import logging
+
+logger = logging.getLogger("backend.services")
 
 
 

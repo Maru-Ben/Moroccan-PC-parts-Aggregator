@@ -1,10 +1,13 @@
 from coreapi.services.product_grouping.normalizers import gpu
 from django.db import transaction
 from typing import List, Dict
-from coreapi.services.product_grouping.logger import logger
 from django.db.models import Min, F
 from coreapi.models import Product, ProductGroup, Website
-from coreapi.services.product_grouping.models import scraped_product
+from coreapi.domain.product import scraped_product
+import logging
+
+logger = logging.getLogger("backend.services")
+
 
 class ProductProcessor:
     def __init__(self):
@@ -49,6 +52,7 @@ class ProductProcessor:
         self._update_group_pricing()
         
         return stats
+    
     
     @transaction.atomic
     def _process_single_product(self, product: scraped_product, stats: Dict):
