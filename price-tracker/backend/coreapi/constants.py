@@ -41,3 +41,10 @@ SCRAPING_WAIT = { # assuming they have bad servers
     "max_seconds": 6
 }
 
+IMAGE_PRIORITY_RETAILERS = [
+    'techspace', # Best images
+    'ultrapc',      
+    'nextlevelpc', # Worst
+]
+
+
