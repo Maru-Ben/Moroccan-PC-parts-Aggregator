@@ -1,8 +1,8 @@
 import re
 from difflib import SequenceMatcher
-from .base import BaseNormalizer
-from ..models import ProductSpecs
-from ....constants import CATEGORIES
+from coreapi.services.product_grouping.normalizers.base import BaseNormalizer
+from coreapi.services.product_grouping.models import ProductSpecs
+from coreapi.constants import CATEGORIES
 
 class GPUNormalizer(BaseNormalizer):
     def __init__(self, rules_path):

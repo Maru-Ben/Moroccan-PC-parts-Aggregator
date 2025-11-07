@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from ..models import ProductSpecs
+from coreapi.services.product_grouping.models import ProductSpecs
 from typing import Dict
 import re
 
@@ -15,7 +15,7 @@ class BaseNormalizer(ABC):
     
     def _load_rules(self, path: str) -> Dict:
         import json
-        with open(path, 'r') as f:
+        with open(f"./coreapi/services/product_grouping/rules/{path}", 'r') as f:
             return json.load(f)
     
     def _extract_by_patterns(self, text: str, patterns: Dict[str, str]) -> str:
