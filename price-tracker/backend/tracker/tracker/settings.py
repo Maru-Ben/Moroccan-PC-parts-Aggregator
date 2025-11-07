@@ -12,10 +12,21 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from coreapi.config import settings
+from .logging_config import setup_logging, register_service_logger
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Initialize global logging
+setup_logging(
+    env="development",
+    log_dir="logs",  
+    enable_file_logging=True,
+    json_logs=False,     
+)
+
+register_service_logger("backend_services", log_file="backend_services.log", level="DEBUG")
+register_service_logger("api", log_file="api.log", level="DEBUG")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
