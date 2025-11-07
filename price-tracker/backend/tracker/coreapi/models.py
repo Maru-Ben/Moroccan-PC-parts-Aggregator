@@ -2,12 +2,15 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from coreapi.constants import CATEGORIES
 
+
 CATEGORY_CHOICES = [(cat, cat.capitalize()) for cat in CATEGORIES]
+
 
 class Website(models.Model):
     name = models.CharField(_("Website name"), max_length=50)
     created_at = models.DateTimeField(_("First added"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Last updated"), auto_now=True)
+
 
 class Product(models.Model):
     id = models.CharField(primary_key=True, max_length=100, unique=True)
@@ -25,6 +28,7 @@ class Product(models.Model):
     created_at = models.DateTimeField(_("First scraped"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Last updated"), auto_now=True)
     seen = models.BooleanField(default=False)
+    
     
 class ProductGroup(models.Model):
     canonical_name = models.CharField(_("Canonical product name"), max_length=100, db_index=True)

@@ -19,6 +19,7 @@ class ProductSpecs:
         return "_".join(key_parts).upper().replace(" ", "_")
     
     
+@dataclass
 class scraped_product:
     """Format of the the products results that we ger from scraping"""
     id: str
