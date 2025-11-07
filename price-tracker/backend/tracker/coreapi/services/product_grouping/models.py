@@ -17,3 +17,16 @@ class ProductSpecs:
         key_parts = [self.category, self.brand, self.model]
         key_parts.extend(str(v) for v in sorted(self.key_specs.values()))
         return "_".join(key_parts).upper().replace(" ", "_")
+    
+    
+class scraped_product:
+    """Format of the the products results that we ger from scraping"""
+    id: str
+    name: str
+    url: str
+    short_description: str
+    image_url: str
+    price: float
+    availability: bool
+    category: str
+    website: str
