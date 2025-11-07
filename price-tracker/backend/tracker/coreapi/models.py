@@ -17,7 +17,7 @@ class Product(models.Model):
     image_url = models.URLField(_("Product Image URL"), max_length=200)
     price = models.DecimalField(_("Product Price"), max_digits=10, decimal_places=2)
     availability = models.BooleanField(_("Product availability"), default=True)
-    category = models.CharField(_("Product Category"), max_length=4, choices=CATEGORY_CHOICES)
+    category = models.CharField(_("Product Category"), choices=CATEGORY_CHOICES)
     
     website = models.ForeignKey(Website, verbose_name=_("Website"), on_delete=models.CASCADE, related_name="products")
     canonical_group = models.ForeignKey('ProductGroup', null=True, blank=True, on_delete=models.SET_NULL, related_name='products')
@@ -28,10 +28,10 @@ class Product(models.Model):
     
 class ProductGroup(models.Model):
     canonical_name = models.CharField(_("Canonical product name"), max_length=100, db_index=True)
-    category = models.CharField(_("Product Category"), max_length=4, choices=CATEGORY_CHOICES)
+    category = models.CharField(_("Product Category"), choices=CATEGORY_CHOICES)
     starting_price = models.DecimalField(_("Starting Price"), max_digits=10, decimal_places=2)
-    brand = models.CharField(_("Brand", max_length=100))
-    attributes = models.JSONField(_("Products attributes", default=dict))
+    brand = models.CharField(_("Brand"), max_length=100)
+    attributes = models.JSONField(_("Products attributes"), default=dict)
     
     created_at = models.DateTimeField(_("First created"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Last updated"), auto_now=True)
