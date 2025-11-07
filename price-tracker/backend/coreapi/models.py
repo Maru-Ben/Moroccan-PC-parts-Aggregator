@@ -35,7 +35,7 @@ class ProductGroup(models.Model):
     category = models.CharField(_("Product Category"), choices=CATEGORY_CHOICES)
     starting_price = models.DecimalField(_("Starting Price"), max_digits=10, decimal_places=2)
     brand = models.CharField(_("Brand"), max_length=100)
-    attributes = models.JSONField(_("Products attributes"), default=dict)
+    representative_image_url = models.URLField(_("Product Group Image URL"), max_length=200, blank=True, null=True)
     
     created_at = models.DateTimeField(_("First created"), auto_now_add=True)
     updated_at = models.DateTimeField(_("Last updated"), auto_now=True)
