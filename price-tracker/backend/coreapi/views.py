@@ -67,21 +67,11 @@ class ProductGroupViewSet(viewsets.ReadOnlyModelViewSet):
                     length_penalty=ExpressionWrapper(
                         Abs(F('name_len') - len(query)) / (F('name_len') + len(query)),
                         output_field=FloatField()
-                    ),
-                    spec_boost=Case(
-                        # GPU: model_number
-                        When(
-                            category='gpu',
-                            attributes__model_number__in=[w for w in query_words if re.match(r'^\d{4}$', w)],
-                            then=Value(0.3)
-                        ),
-                        default=Value(0.0),
-                        output_field=FloatField()
                     )
                 )
                 .annotate(
                     score=ExpressionWrapper(
-                        F('similarity') + F('prefix_boost') + F('spec_boost') - F('length_penalty') * 0.1,
+                        F('similarity') + F('prefix_boost') - F('length_penalty') * 0.1,
                         output_field=FloatField()
                     )
                 )
