@@ -23,8 +23,8 @@ export function SearchFilters({ onFiltersChange, initialCategory }: SearchFilter
   const [activeFilters, setActiveFilters] = useState<string[]>(initialCategory ? [initialCategory] : [])
 
   const categories = [
-    { name: t.processors, value: "processors" },
-    { name: t.graphicsCards, value: "graphics-cards" },
+    { name: t.processors, value: "cpu" },
+    { name: t.graphicsCards, value: "gpu" },
     { name: t.memory, value: "memory" },
     { name: t.storage, value: "storage" },
     { name: t.motherboards, value: "motherboards" },

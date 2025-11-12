@@ -85,7 +85,7 @@ export function PriceComparisonTable({ stores }: PriceComparisonTableProps) {
               }`}
             >
               <div className="flex items-center gap-4">
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   {index === 0 && store.availability === "in-stock" && <Badge className="mb-1">{t.bestPrice}</Badge>}
                   <h3 className="font-semibold">{store.name}</h3>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">

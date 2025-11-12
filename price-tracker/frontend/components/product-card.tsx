@@ -10,19 +10,14 @@ interface ProductCardProps {
     name: string
     image: string
     brand: string
-    minPrice: number
-    maxPrice: number
-    rating: number
-    reviewCount: number
+    starting_price: number
     availability: "in-stock" | "limited" | "out-of-stock"
-    stores: Array<{
-      name: string
-      price: number
-      availability: boolean
-    }>
+    category: string
   }
   viewMode: "grid" | "list"
 }
+
+       
 
 export function ProductCard({ product, viewMode }: ProductCardProps) {
   const formatPrice = (price: number) => `${price.toLocaleString()} MAD`
@@ -44,7 +39,7 @@ export function ProductCard({ product, viewMode }: ProductCardProps) {
       <Card className="hover:shadow-lg transition-shadow">
         <CardContent className="p-6">
           <div className="flex gap-6">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <Link href={`/product/${product.id}`}>
                 <img
                   src={product.image || "/placeholder.svg"}
@@ -63,7 +58,7 @@ export function ProductCard({ product, viewMode }: ProductCardProps) {
                       {product.name}
                     </h3>
                   </Link>
-
+{/* 
                   <div className="flex items-center gap-2 mb-2">
                     <div className="flex items-center">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
@@ -73,17 +68,17 @@ export function ProductCard({ product, viewMode }: ProductCardProps) {
                     <Badge className={availabilityColors[product.availability]} variant="secondary">
                       {availabilityText[product.availability]}
                     </Badge>
-                  </div>
+                  </div> */}
                 </div>
 
                 <div className="text-right">
                   <div className="mb-2">
-                    <p className="text-2xl font-bold text-accent">{formatPrice(product.minPrice)}</p>
-                    {product.minPrice !== product.maxPrice && (
+                    <p className="text-2xl font-bold text-accent">{formatPrice(product.starting_price)}</p>
+                    {/* {product.minPrice !== product.maxPrice && (
                       <p className="text-sm text-muted-foreground">to {formatPrice(product.maxPrice)}</p>
-                    )}
+                    )} */}
                   </div>
-                  <p className="text-xs text-muted-foreground mb-3">{product.stores.length} stores</p>
+                  <p className="text-xs text-muted-foreground mb-3">available in 3 stores</p>
 
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline">
@@ -126,23 +121,23 @@ export function ProductCard({ product, viewMode }: ProductCardProps) {
               {product.name}
             </h3>
           </Link>
-
+{/* 
           <div className="flex items-center gap-1">
             <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
             <span className="text-sm font-medium">{product.rating}</span>
             <span className="text-xs text-muted-foreground">({product.reviewCount})</span>
-          </div>
+          </div> */}
 
           <Badge className={availabilityColors[product.availability]} variant="secondary">
             {availabilityText[product.availability]}
           </Badge>
 
           <div className="pt-2">
-            <p className="text-xl font-bold text-accent">{formatPrice(product.minPrice)}</p>
-            {product.minPrice !== product.maxPrice && (
+            <p className="text-xl font-bold text-accent">{formatPrice(product.starting_price)}</p>
+            {/* {product.minPrice !== product.maxPrice && (
               <p className="text-sm text-muted-foreground">to {formatPrice(product.maxPrice)}</p>
-            )}
-            <p className="text-xs text-muted-foreground">{product.stores.length} stores</p>
+            )} */}
+            <p className="text-xs text-muted-foreground">available in 3 stores</p>
           </div>
 
           <div className="flex gap-2 pt-2">

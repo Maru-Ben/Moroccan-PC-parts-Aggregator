@@ -8,126 +8,108 @@ import { SearchFilters } from "@/components/search-filters"
 import { SearchControls } from "@/components/search-controls"
 import { ProductCard } from "@/components/product-card"
 
-// Mock data for demonstration
-const mockProducts = [
-  {
-    id: "1",
-    name: "NVIDIA GeForce RTX 4080 SUPER Gaming X Trio",
-    image: "/nvidia-rtx-4080.png",
-    brand: "MSI",
-    category: "graphics-cards",
-    minPrice: 12500,
-    maxPrice: 13200,
-    rating: 4.8,
-    reviewCount: 124,
-    availability: "in-stock" as const,
-    stores: [
-      { name: "TechnoMarket", price: 12500, availability: true },
-      { name: "PCGamer", price: 12800, availability: true },
-      { name: "ElectroShop", price: 13200, availability: true },
-    ],
-  },
-  {
-    id: "2",
-    name: "AMD Ryzen 7 7800X3D Processor",
-    image: "/amd-ryzen-7-7800x3d-processor.jpg",
-    brand: "AMD",
-    category: "processors",
-    minPrice: 4200,
-    maxPrice: 4500,
-    rating: 4.9,
-    reviewCount: 89,
-    availability: "limited" as const,
-    stores: [
-      { name: "TechnoMarket", price: 4200, availability: true },
-      { name: "PCGamer", price: 4500, availability: false },
-    ],
-  },
-  {
-    id: "3",
-    name: "Corsair Vengeance LPX 32GB DDR4-3200",
-    image: "/corsair-vengeance-lpx-ram-memory.jpg",
-    brand: "Corsair",
-    category: "memory",
-    minPrice: 1800,
-    maxPrice: 2100,
-    rating: 4.7,
-    reviewCount: 256,
-    availability: "in-stock" as const,
-    stores: [
-      { name: "TechnoMarket", price: 1800, availability: true },
-      { name: "PCGamer", price: 1950, availability: true },
-      { name: "ElectroShop", price: 2100, availability: true },
-    ],
-  },
-  {
-    id: "4",
-    name: "Samsung 980 PRO 2TB NVMe SSD",
-    image: "/samsung-980-pro-nvme-ssd.jpg",
-    brand: "Samsung",
-    category: "storage",
-    minPrice: 2200,
-    maxPrice: 2400,
-    rating: 4.6,
-    reviewCount: 178,
-    availability: "in-stock" as const,
-    stores: [
-      { name: "TechnoMarket", price: 2200, availability: true },
-      { name: "ElectroShop", price: 2400, availability: true },
-    ],
-  },
-  {
-    id: "5",
-    name: "ASUS ROG Strix B650E-F Gaming WiFi",
-    image: "/asus-rog-strix-motherboard.jpg",
-    brand: "ASUS",
-    category: "motherboards",
-    minPrice: 3200,
-    maxPrice: 3500,
-    rating: 4.5,
-    reviewCount: 92,
-    availability: "in-stock" as const,
-    stores: [
-      { name: "TechnoMarket", price: 3200, availability: true },
-      { name: "PCGamer", price: 3500, availability: true },
-    ],
-  },
-  {
-    id: "6",
-    name: "Corsair RM850x 850W 80+ Gold PSU",
-    image: "/corsair-rm850x-power-supply.jpg",
-    brand: "Corsair",
-    category: "power-supply",
-    minPrice: 1600,
-    maxPrice: 1800,
-    rating: 4.8,
-    reviewCount: 145,
-    availability: "limited" as const,
-    stores: [
-      { name: "PCGamer", price: 1600, availability: true },
-      { name: "ElectroShop", price: 1800, availability: false },
-    ],
-  },
-]
+interface ProductGroup {
+  id: string
+  name: string
+  image: string
+  brand: string
+  starting_price: number
+  availability: "in-stock" | "limited" | "out-of-stock"
+  category: string
+}
+            
+interface ApiResponse {
+  count: number
+  next: string | null
+  previous: string | null
+  results: Array<{
+    id: number
+    canonical_name: string
+    category: string
+    starting_price: string
+    brand: string
+    representative_image_url: string | null
+    created_at: string
+    updated_at: string
+  }>
+}
 
 export default function SearchPage() {
   const searchParams = useSearchParams()
+  const queryParam = searchParams.get("q")
   const categoryParam = searchParams.get("category")
 
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid")
   const [filters, setFilters] = useState<any>({})
-  const [filteredProducts, setFilteredProducts] = useState(mockProducts)
+  const [products, setProducts] = useState<ProductGroup[]>([])
+  const [filteredProducts, setFilteredProducts] = useState<ProductGroup[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
+  // Fetch products from API
   useEffect(() => {
-    let filtered = [...mockProducts]
+    const fetchProducts = async () => {
+      if (!queryParam) {
+        setProducts([])
+        setFilteredProducts([])
+        setLoading(false)
+        return
+      }
+      
+      setLoading(true)
+      setError(null)
+      
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/products/search?query=${encodeURIComponent(queryParam)}`
+        )
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch products: ${response.status}`)
+        }
+        
+        const data: ApiResponse = await response.json()
+        
+        // Transform API data to match ProductCard interface
+        const transformedProducts = data.results.map((item) => {
+          const price = parseFloat(item.starting_price)
+          
+          return {
+            id: item.id.toString(),
+            name: item.canonical_name,
+            image: item.representative_image_url || "/placeholder.svg",
+            brand: item.brand,
+            starting_price: price,
+            availability: "in-stock" as const,
+            category: item.category
+          }
+        })
+        
+        setProducts(transformedProducts)
+        setFilteredProducts(transformedProducts)
+      } catch (err) {
+        console.error("Error fetching products:", err)
+        setError("Failed to load products. Please try again later.")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [queryParam])
+
+  // Apply filters
+  useEffect(() => {
+    let filtered = [...products]
 
     if (filters.categories && filters.categories.length > 0) {
-      filtered = filtered.filter((p) => filters.categories.includes(p.category))
+      // For now, we'll filter by brand since we don't have category in our transformed data
+      filtered = filtered.filter((p) => filters.categories.includes(p.category.toLowerCase()))
     }
 
     // Filter by price range
     if (filters.priceRange) {
-      filtered = filtered.filter((p) => p.minPrice >= filters.priceRange[0] && p.minPrice <= filters.priceRange[1])
+      filtered = filtered.filter((p) => p.starting_price >= filters.priceRange[0] && p.starting_price <= filters.priceRange[1])
     }
 
     // Filter by brands
@@ -141,7 +123,42 @@ export default function SearchPage() {
     }
 
     setFilteredProducts(filtered)
-  }, [filters])
+  }, [filters, products])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-bold mb-4">Error Loading Products</h2>
+            <p className="text-muted-foreground mb-6">{error}</p>
+            <button 
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+              onClick={() => window.location.reload()}
+            >
+              Try Again
+            </button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen">
@@ -151,13 +168,13 @@ export default function SearchPage() {
         <div className="mb-6">
           <h1 className="text-2xl font-bold mb-2">Search Results</h1>
           <p className="text-muted-foreground">
-            {categoryParam ? `Showing results for "${categoryParam}"` : 'Showing results for "graphics cards"'}
+            {queryParam ? `Showing results for "${queryParam}"` : 'Showing all products'}
           </p>
         </div>
 
         <div className="flex gap-8">
           {/* Desktop Filters Sidebar */}
-          <aside className="hidden lg:block w-80 flex-shrink-0">
+          <aside className="hidden lg:block w-80 shrink-0">
             <SearchFilters onFiltersChange={setFilters} initialCategory={categoryParam || undefined} />
           </aside>
 
@@ -174,16 +191,27 @@ export default function SearchPage() {
             </div>
 
             {/* Products Grid/List */}
-            <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
-              {filteredProducts.map((product) => (
-                <ProductCard key={product.id} product={product} viewMode={viewMode} />
-              ))}
-            </div>
+            {filteredProducts.length > 0 ? (
+              <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} viewMode={viewMode} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <h3 className="text-xl font-semibold mb-2">No products found</h3>
+                <p className="text-muted-foreground">
+                  {queryParam 
+                    ? `No products match your search for "${queryParam}". Try a different search term.` 
+                    : "No products available at the moment."}
+                </p>
+              </div>
+            )}
 
             {/* Pagination would go here */}
             <div className="mt-12 text-center">
               <p className="text-sm text-muted-foreground">
-                Showing {filteredProducts.length} of {mockProducts.length} results
+                Showing {filteredProducts.length} of {products.length} results
               </p>
             </div>
           </div>
