@@ -6,3 +6,4 @@
 - instead of Build Guide it should be Build your pc and scroll down to the build your own pc section.
 - the sorting in the search page is not working. and should remove customer rating and most popular as sorting options.
 - remove the compare option in the search page.
+- add pagination to the search page.
